@@ -16,12 +16,14 @@ const DashboardPage = ({ user: initialUser }) => {
   const { theme, setTheme } = useTheme();
   const [user, setUser] = useState(initialUser);
   const [progress, setProgress] = useState(null);
+  const [achievements, setAchievements] = useState([]);
   const [recommendations, setRecommendations] = useState('');
   const [loadingRec, setLoadingRec] = useState(false);
 
   useEffect(() => {
     fetchUserData();
     fetchProgress();
+    fetchAchievements();
   }, []);
 
   const fetchUserData = async () => {
@@ -43,6 +45,17 @@ const DashboardPage = ({ user: initialUser }) => {
       setProgress(response.data);
     } catch (error) {
       console.error('Failed to fetch progress');
+    }
+  };
+
+  const fetchAchievements = async () => {
+    try {
+      const response = await axios.get(`${BACKEND_URL}/api/achievements/available`, {
+        withCredentials: true,
+      });
+      setAchievements(response.data);
+    } catch (error) {
+      console.error('Failed to fetch achievements');
     }
   };
 

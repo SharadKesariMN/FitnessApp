@@ -6,7 +6,7 @@ from datetime import datetime
 class FitFlexAPITester:
     def __init__(self, base_url="https://activehub-17.preview.emergentagent.com"):
         self.base_url = base_url
-        self.session_token = None
+        self.session = requests.Session()  # Use session to maintain cookies
         self.user_id = None
         self.tests_run = 0
         self.tests_passed = 0
@@ -19,9 +19,6 @@ class FitFlexAPITester:
         
         if headers:
             test_headers.update(headers)
-            
-        if self.session_token and 'Authorization' not in test_headers:
-            test_headers['Authorization'] = f'Bearer {self.session_token}'
 
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
@@ -29,13 +26,13 @@ class FitFlexAPITester:
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=test_headers)
+                response = self.session.get(url, headers=test_headers)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers)
+                response = self.session.post(url, json=data, headers=test_headers)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=test_headers)
+                response = self.session.put(url, json=data, headers=test_headers)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=test_headers)
+                response = self.session.delete(url, headers=test_headers)
 
             success = response.status_code == expected_status
             if success:

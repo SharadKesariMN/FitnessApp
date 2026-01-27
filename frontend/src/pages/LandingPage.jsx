@@ -11,16 +11,12 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const LandingPage = () => {
   const navigate = useNavigate();
 
-  const handleGoogleLogin = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin + '/dashboard';
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  const handleSignIn = () => {
+    navigate('/signin');
   };
 
   const handleSignUp = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-    const redirectUrl = window.location.origin + '/onboarding';
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    navigate('/signup');
   };
 
   const handleGuestMode = async () => {
@@ -77,15 +73,15 @@ const LandingPage = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Button
-                data-testid="google-signin-btn"
-                onClick={handleGoogleLogin}
+                data-testid="signin-btn"
+                onClick={handleSignIn}
                 size="lg"
                 className="btn-hover bg-volt-blue hover:bg-volt-blue/90 text-white font-bold px-8 py-6 text-lg rounded-full"
               >
-                Sign In with Google
+                Sign In
               </Button>
               <Button
-                data-testid="google-signup-btn"
+                data-testid="signup-btn"
                 onClick={handleSignUp}
                 size="lg"
                 className="btn-hover bg-electric-blaze hover:bg-electric-blaze/90 text-white font-bold px-8 py-6 text-lg rounded-full"

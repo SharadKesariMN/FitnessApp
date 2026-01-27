@@ -310,46 +310,55 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
         {"_id": 0}
     ).to_list(1000)
     
-    # Combine available exercises
-    all_exercises = sport_exercises + fitness_exercises + hobby_exercises
-    if not all_exercises:
-        all_exercises = await db.exercises.find({}, {"_id": 0}).to_list(1000)
+    # Get all other sports exercises for variety
+    other_exercises = await db.exercises.find(
+        {"sport_category": {"$nin": [selected_sport, "Fitness", "Hobby"] if selected_sport else ["Fitness", "Hobby"]}},
+        {"_id": 0}
+    ).to_list(1000)
     
-    if len(all_exercises) < 5:
+    # Combine available exercises with priority
+    primary_pool = fitness_exercises + hobby_exercises + other_exercises
+    if len(primary_pool) < 10:
+        primary_pool = await db.exercises.find({}, {"_id": 0}).to_list(1000)
+    
+    if len(primary_pool) < 5:
         raise HTTPException(status_code=500, detail="Not enough exercises in database")
     
-    # Generate varied daily workouts
+    # Shuffle to ensure randomness
+    random.shuffle(primary_pool)
+    random.shuffle(sport_exercises)
+    
+    # Generate varied daily workouts with better rotation
     daily_exercises = []
-    used_exercise_indices = set()
+    exercise_pool_index = 0
+    sport_exercise_index = 0
     
     for day in range(1, 46):
         day_workout = []
         
-        # For sport-specific plans, include sport exercise every 4-5 days
+        # Include sport-specific exercise only every 5 days
         if sport_exercises and day % 5 == 1:
-            sport_ex = random.choice(sport_exercises)
+            sport_ex = sport_exercises[sport_exercise_index % len(sport_exercises)]
             day_workout.append(sport_ex["exercise_id"])
+            sport_exercise_index += 1
         
-        # Fill rest with varied exercises
-        available_exercises = [e for i, e in enumerate(all_exercises) if i not in used_exercise_indices]
-        if len(available_exercises) < 4:
-            used_exercise_indices.clear()
-            available_exercises = all_exercises
+        # Fill with varied exercises from primary pool
+        exercises_needed = 5 - len(day_workout)
         
-        # Randomly select 4-5 exercises ensuring variety
-        num_exercises = random.randint(4, 5)
-        selected = random.sample(available_exercises, min(num_exercises, len(available_exercises)))
-        
-        for ex in selected:
-            if ex["exercise_id"] not in day_workout:
-                day_workout.append(ex["exercise_id"])
-                idx = next((i for i, e in enumerate(all_exercises) if e["exercise_id"] == ex["exercise_id"]), None)
-                if idx is not None:
-                    used_exercise_indices.add(idx)
+        for _ in range(exercises_needed):
+            if exercise_pool_index >= len(primary_pool):
+                # Reset and reshuffle when we've used all exercises
+                exercise_pool_index = 0
+                random.shuffle(primary_pool)
+            
+            exercise = primary_pool[exercise_pool_index]
+            if exercise["exercise_id"] not in day_workout:
+                day_workout.append(exercise["exercise_id"])
+                exercise_pool_index += 1
         
         daily_exercises.append({
             "day": day,
-            "exercises": day_workout[:5]
+            "exercises": day_workout
         })
     
     plan_id = f"plan_{uuid.uuid4().hex[:12]}"

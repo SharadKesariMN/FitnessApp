@@ -223,10 +223,8 @@ def main():
     
     # Test guest authentication first
     if not tester.test_guest_auth():
-        print("❌ Guest authentication failed, trying cookie-based auth...")
-        if not tester.test_with_cookies():
-            print("❌ Both authentication methods failed, stopping tests")
-            return 1
+        print("❌ Guest authentication failed, stopping tests")
+        return 1
     
     # Test core user flow
     tester.test_onboarding()

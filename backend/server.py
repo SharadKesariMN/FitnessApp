@@ -282,26 +282,74 @@ async def get_user_profile(user: Dict = Depends(require_auth)):
 # Workout plan endpoints
 @api_router.post("/workout/generate-plan")
 async def generate_workout_plan(user: Dict = Depends(require_auth)):
+    import random
+    
     fitness_goal = user.get("fitness_goal")
     selected_sport = user.get("selected_sport")
     
     if not fitness_goal:
         raise HTTPException(status_code=400, detail="Fitness goal not set")
     
-    exercises = await db.exercises.find(
-        {"sport_category": selected_sport if selected_sport else fitness_goal},
+    # Get sport-specific exercises
+    sport_exercises = []
+    if selected_sport:
+        sport_exercises = await db.exercises.find(
+            {"sport_category": selected_sport},
+            {"_id": 0}
+        ).to_list(1000)
+    
+    # Get general fitness exercises
+    fitness_exercises = await db.exercises.find(
+        {"sport_category": "Fitness"},
         {"_id": 0}
     ).to_list(1000)
     
-    if not exercises:
-        exercises = await db.exercises.find({}, {"_id": 0}).to_list(1000)
+    # Get hobby/easy exercises
+    hobby_exercises = await db.exercises.find(
+        {"sport_category": "Hobby"},
+        {"_id": 0}
+    ).to_list(1000)
     
+    # Combine available exercises
+    all_exercises = sport_exercises + fitness_exercises + hobby_exercises
+    if not all_exercises:
+        all_exercises = await db.exercises.find({}, {"_id": 0}).to_list(1000)
+    
+    if len(all_exercises) < 5:
+        raise HTTPException(status_code=500, detail="Not enough exercises in database")
+    
+    # Generate varied daily workouts
     daily_exercises = []
+    used_exercise_indices = set()
+    
     for day in range(1, 46):
-        day_exercises = exercises[:5] if len(exercises) >= 5 else exercises
+        day_workout = []
+        
+        # For sport-specific plans, include sport exercise every 4-5 days
+        if sport_exercises and day % 5 == 1:
+            sport_ex = random.choice(sport_exercises)
+            day_workout.append(sport_ex["exercise_id"])
+        
+        # Fill rest with varied exercises
+        available_exercises = [e for i, e in enumerate(all_exercises) if i not in used_exercise_indices]
+        if len(available_exercises) < 4:
+            used_exercise_indices.clear()
+            available_exercises = all_exercises
+        
+        # Randomly select 4-5 exercises ensuring variety
+        num_exercises = random.randint(4, 5)
+        selected = random.sample(available_exercises, min(num_exercises, len(available_exercises)))
+        
+        for ex in selected:
+            if ex["exercise_id"] not in day_workout:
+                day_workout.append(ex["exercise_id"])
+                idx = next((i for i, e in enumerate(all_exercises) if e["exercise_id"] == ex["exercise_id"]), None)
+                if idx is not None:
+                    used_exercise_indices.add(idx)
+        
         daily_exercises.append({
             "day": day,
-            "exercises": [e["exercise_id"] for e in day_exercises]
+            "exercises": day_workout[:5]
         })
     
     plan_id = f"plan_{uuid.uuid4().hex[:12]}"
@@ -318,7 +366,7 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
     
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"current_plan_id": plan_id}}
+        {"$set": {"current_plan_id": plan_id, "current_streak": 0}}
     )
     
     plan = await db.workout_plans.find_one({"plan_id": plan_id}, {"_id": 0})

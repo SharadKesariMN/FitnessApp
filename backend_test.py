@@ -198,14 +198,13 @@ class FitFlexAPITester:
         print("\n🔍 Testing with cookie-based authentication...")
         
         # Create guest session and get cookie
-        session = requests.Session()
-        response = session.post(f"{self.base_url}/api/auth/guest")
+        response = self.session.post(f"{self.base_url}/api/auth/guest")
         
         if response.status_code == 200:
             print("✅ Guest session created with cookies")
             
             # Test profile endpoint with cookies
-            profile_response = session.get(f"{self.base_url}/api/user/profile")
+            profile_response = self.session.get(f"{self.base_url}/api/user/profile")
             if profile_response.status_code == 200:
                 print("✅ Profile access with cookies works")
                 return True

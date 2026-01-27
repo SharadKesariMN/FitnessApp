@@ -429,9 +429,9 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
     for day in range(1, 46):
         day_workout = []
         
-        # For sport-specific plans: 25% sport + 75% general (1-2 sport exercises out of 5)
+        # For sport-specific plans: 25% sport + 75% general (1-2 sport exercises out of 6-7)
         if sport_exercises and selected_sport:
-            # Add 1 sport-specific exercise per day (20% = 1 out of 5)
+            # Add 1 sport-specific exercise per day (14-17% = 1 out of 6-7)
             if sport_pool_index >= len(sport_exercises):
                 sport_pool_index = 0
                 random.shuffle(sport_exercises)
@@ -440,8 +440,10 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
             day_workout.append(sport_ex["exercise_id"])
             sport_pool_index += 1
         
-        # Fill remaining slots with general exercises (4 exercises = 80%)
-        exercises_needed = 5 - len(day_workout)
+        # Fill remaining slots with general exercises (5-6 exercises = 83-86%)
+        # Aim for 6-7 total exercises per day for 35-45 min duration
+        target_exercises = random.randint(6, 7)
+        exercises_needed = target_exercises - len(day_workout)
         added = 0
         attempts = 0
         max_attempts = len(general_exercises) * 2

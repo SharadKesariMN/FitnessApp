@@ -344,17 +344,21 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
         
         # Fill with varied exercises from primary pool
         exercises_needed = 5 - len(day_workout)
+        attempts = 0
+        max_attempts = len(primary_pool) * 2
         
-        for _ in range(exercises_needed):
+        while len(day_workout) < 5 and attempts < max_attempts:
             if exercise_pool_index >= len(primary_pool):
                 # Reset and reshuffle when we've used all exercises
                 exercise_pool_index = 0
                 random.shuffle(primary_pool)
             
             exercise = primary_pool[exercise_pool_index]
+            exercise_pool_index += 1
+            attempts += 1
+            
             if exercise["exercise_id"] not in day_workout:
                 day_workout.append(exercise["exercise_id"])
-                exercise_pool_index += 1
         
         daily_exercises.append({
             "day": day,

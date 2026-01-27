@@ -90,7 +90,7 @@ const LandingPage = () => {
                 size="lg"
                 className="btn-hover bg-electric-blaze hover:bg-electric-blaze/90 text-white font-bold px-8 py-6 text-lg rounded-full"
               >
-                Sign Up with Google
+                Sign Up for Free
               </Button>
               <Button
                 data-testid="guest-mode-btn"

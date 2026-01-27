@@ -64,6 +64,7 @@ class User(BaseModel):
     user_id: str
     email: EmailStr
     name: str
+    password_hash: Optional[str] = None
     picture: Optional[str] = None
     height: Optional[float] = None
     weight: Optional[float] = None
@@ -77,6 +78,15 @@ class User(BaseModel):
     is_guest: bool = False
     is_admin: bool = False
     created_at: datetime
+
+class SignUpData(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class SignInData(BaseModel):
+    email: EmailStr
+    password: str
 
 class UserSession(BaseModel):
     model_config = ConfigDict(extra="ignore")

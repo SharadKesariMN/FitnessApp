@@ -17,6 +17,12 @@ const LandingPage = () => {
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
+  const handleSignUp = () => {
+    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    const redirectUrl = window.location.origin + '/onboarding';
+    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+  };
+
   const handleGuestMode = async () => {
     try {
       const response = await axios.post(`${BACKEND_URL}/api/auth/guest`, {}, {
@@ -71,12 +77,20 @@ const LandingPage = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Button
-                data-testid="google-login-btn"
+                data-testid="google-signin-btn"
                 onClick={handleGoogleLogin}
                 size="lg"
                 className="btn-hover bg-volt-blue hover:bg-volt-blue/90 text-white font-bold px-8 py-6 text-lg rounded-full"
               >
-                Sign in with Google
+                Sign In with Google
+              </Button>
+              <Button
+                data-testid="google-signup-btn"
+                onClick={handleSignUp}
+                size="lg"
+                className="btn-hover bg-electric-blaze hover:bg-electric-blaze/90 text-white font-bold px-8 py-6 text-lg rounded-full"
+              >
+                Sign Up with Google
               </Button>
               <Button
                 data-testid="guest-mode-btn"

@@ -87,7 +87,7 @@ EXERCISES_DATA = [
         "name": "Burpees",
         "description": "Full body explosive movement",
         "duration_minutes": 6,
-        "gif_url": "https://media.giphy.com/media/3oEjHLzm4BCF8zfPy0/giphy.gif",
+        "gif_url": "https://giphy.com/gifs/CROSSFITBORAN-KxuGSIZU1QZfRiRx4h",
         "sport_category": "Fitness",
         "difficulty": "Advanced",
         "instructions": [

@@ -137,7 +137,100 @@ class UserProgress(BaseModel):
     completed_at: Optional[datetime] = None
     notes: Optional[str] = None
 
+# Helper functions for password hashing
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, password_hash: str) -> bool:
+    return hash_password(password) == password_hash
+
 # Auth endpoints
+@api_router.post("/auth/signup")
+async def signup(data: SignUpData, response: Response):
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    password_hash = hash_password(data.password)
+    
+    user_doc = {
+        "user_id": user_id,
+        "email": data.email,
+        "name": data.name,
+        "password_hash": password_hash,
+        "is_guest": False,
+        "is_admin": False,
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.users.insert_one(user_doc)
+    
+    # Create session
+    session_token = f"session_{secrets.token_urlsafe(32)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session_doc = {
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.user_sessions.insert_one(session_doc)
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
+    return user
+
+@api_router.post("/auth/signin")
+async def signin(data: SignInData, response: Response):
+    # Find user
+    user_doc = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password
+    if not user_doc.get("password_hash"):
+        raise HTTPException(status_code=401, detail="Please use Google Sign In")
+    
+    if not verify_password(data.password, user_doc["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create session
+    session_token = f"session_{secrets.token_urlsafe(32)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session_doc = {
+        "user_id": user_doc["user_id"],
+        "session_token": session_token,
+        "expires_at": expires_at,
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.user_sessions.insert_one(session_doc)
+    
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    # Remove password_hash from response
+    user_doc.pop("password_hash", None)
+    return user_doc
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
     data = await request.json()

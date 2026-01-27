@@ -290,7 +290,7 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
     if not fitness_goal:
         raise HTTPException(status_code=400, detail="Fitness goal not set")
     
-    # Get sport-specific exercises
+    # Get sport-specific exercises ONLY for the selected sport
     sport_exercises = []
     if selected_sport:
         sport_exercises = await db.exercises.find(
@@ -298,72 +298,90 @@ async def generate_workout_plan(user: Dict = Depends(require_auth)):
             {"_id": 0}
         ).to_list(1000)
     
-    # Get general fitness exercises
-    fitness_exercises = await db.exercises.find(
-        {"sport_category": "Fitness"},
+    # Get ONLY general fitness and hobby exercises (NOT other sports)
+    general_exercises = await db.exercises.find(
+        {"sport_category": {"$in": ["Fitness", "Hobby"]}},
         {"_id": 0}
     ).to_list(1000)
     
-    # Get hobby/easy exercises
-    hobby_exercises = await db.exercises.find(
-        {"sport_category": "Hobby"},
-        {"_id": 0}
-    ).to_list(1000)
+    if len(general_exercises) < 5:
+        # Fallback if not enough general exercises
+        general_exercises = await db.exercises.find({}, {"_id": 0}).to_list(1000)
     
-    # Get all other sports exercises for variety
-    other_exercises = await db.exercises.find(
-        {"sport_category": {"$nin": [selected_sport, "Fitness", "Hobby"] if selected_sport else ["Fitness", "Hobby"]}},
-        {"_id": 0}
-    ).to_list(1000)
-    
-    # Combine available exercises with priority
-    primary_pool = fitness_exercises + hobby_exercises + other_exercises
-    if len(primary_pool) < 10:
-        primary_pool = await db.exercises.find({}, {"_id": 0}).to_list(1000)
-    
-    if len(primary_pool) < 5:
+    if len(general_exercises) < 5:
         raise HTTPException(status_code=500, detail="Not enough exercises in database")
     
-    # Shuffle to ensure randomness
-    random.shuffle(primary_pool)
-    random.shuffle(sport_exercises)
+    # Shuffle for randomness
+    random.shuffle(general_exercises)
+    if sport_exercises:
+        random.shuffle(sport_exercises)
     
-    # Generate varied daily workouts with better rotation
+    # Generate 45-day workout plan with proper sport/general ratio
     daily_exercises = []
-    exercise_pool_index = 0
-    sport_exercise_index = 0
+    general_pool_index = 0
+    sport_pool_index = 0
     
     for day in range(1, 46):
         day_workout = []
         
-        # Include sport-specific exercise only every 5 days
-        if sport_exercises and day % 5 == 1:
-            sport_ex = sport_exercises[sport_exercise_index % len(sport_exercises)]
-            day_workout.append(sport_ex["exercise_id"])
-            sport_exercise_index += 1
-        
-        # Fill with varied exercises from primary pool
-        exercises_needed = 5 - len(day_workout)
-        attempts = 0
-        max_attempts = len(primary_pool) * 2
-        
-        while len(day_workout) < 5 and attempts < max_attempts:
-            if exercise_pool_index >= len(primary_pool):
-                # Reset and reshuffle when we've used all exercises
-                exercise_pool_index = 0
-                random.shuffle(primary_pool)
+        # For sport-specific plans: 25% sport + 75% general (1-2 sport exercises out of 5)
+        if sport_exercises and selected_sport:
+            # Add 1 sport-specific exercise per day (20% = 1 out of 5)
+            if sport_pool_index >= len(sport_exercises):
+                sport_pool_index = 0
+                random.shuffle(sport_exercises)
             
-            exercise = primary_pool[exercise_pool_index]
-            exercise_pool_index += 1
+            sport_ex = sport_exercises[sport_pool_index]
+            day_workout.append(sport_ex["exercise_id"])
+            sport_pool_index += 1
+        
+        # Fill remaining slots with general exercises (4 exercises = 80%)
+        exercises_needed = 5 - len(day_workout)
+        added = 0
+        attempts = 0
+        max_attempts = len(general_exercises) * 2
+        
+        while added < exercises_needed and attempts < max_attempts:
+            if general_pool_index >= len(general_exercises):
+                general_pool_index = 0
+                random.shuffle(general_exercises)
+            
+            exercise = general_exercises[general_pool_index]
+            general_pool_index += 1
             attempts += 1
             
+            # Avoid duplicates in same day
             if exercise["exercise_id"] not in day_workout:
                 day_workout.append(exercise["exercise_id"])
+                added += 1
+        
+        # Shuffle the order of exercises within the day for variety
+        random.shuffle(day_workout)
         
         daily_exercises.append({
             "day": day,
             "exercises": day_workout
         })
+    
+    plan_id = f"plan_{uuid.uuid4().hex[:12]}"
+    plan_doc = {
+        "plan_id": plan_id,
+        "user_id": user["user_id"],
+        "plan_type": fitness_goal,
+        "sport": selected_sport,
+        "duration_days": 45,
+        "daily_exercises": daily_exercises,
+        "created_at": datetime.now(timezone.utc)
+    }
+    await db.workout_plans.insert_one(plan_doc)
+    
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"current_plan_id": plan_id, "current_streak": 0}}
+    )
+    
+    plan = await db.workout_plans.find_one({"plan_id": plan_id}, {"_id": 0})
+    return plan
     
     plan_id = f"plan_{uuid.uuid4().hex[:12]}"
     plan_doc = {

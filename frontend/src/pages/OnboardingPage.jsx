@@ -145,6 +145,7 @@ const OnboardingPage = ({ user }) => {
                     type="date"
                     value={formData.date_of_birth}
                     onChange={handleChange}
+                    max={new Date().toISOString().split('T')[0]}
                     required
                     className="border-border"
                   />

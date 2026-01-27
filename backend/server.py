@@ -440,7 +440,94 @@ async def complete_day(day_number: int, user: Dict = Depends(require_auth)):
         }
         await db.user_progress.insert_one(progress_doc)
     
+    # Update streak
+    await update_user_streak(user["user_id"])
+    
+    # Check for new achievements
+    await check_achievements(user["user_id"])
+    
     return {"message": "Day completed"}
+
+async def update_user_streak(user_id: str):
+    # Get all completed days sorted by date
+    progress_list = await db.user_progress.find(
+        {"user_id": user_id, "completed": True},
+        {"_id": 0}
+    ).sort("completed_at", -1).to_list(1000)
+    
+    if not progress_list:
+        return
+    
+    # Calculate current streak
+    current_streak = 1
+    last_date = progress_list[0]["completed_at"]
+    if isinstance(last_date, str):
+        last_date = datetime.fromisoformat(last_date)
+    if last_date.tzinfo is None:
+        last_date = last_date.replace(tzinfo=timezone.utc)
+    
+    for i in range(1, len(progress_list)):
+        curr_date = progress_list[i]["completed_at"]
+        if isinstance(curr_date, str):
+            curr_date = datetime.fromisoformat(curr_date)
+        if curr_date.tzinfo is None:
+            curr_date = curr_date.replace(tzinfo=timezone.utc)
+        
+        # Check if consecutive days
+        diff = (last_date.date() - curr_date.date()).days
+        if diff == 1:
+            current_streak += 1
+            last_date = curr_date
+        else:
+            break
+    
+    # Update user's streak
+    user = await db.users.find_one({"user_id": user_id}, {"_id": 0})
+    longest_streak = user.get("longest_streak", 0)
+    
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "current_streak": current_streak,
+            "longest_streak": max(current_streak, longest_streak)
+        }}
+    )
+
+async def check_achievements(user_id: str):
+    # Get completed days count
+    completed_count = await db.user_progress.count_documents(
+        {"user_id": user_id, "completed": True}
+    )
+    
+    # Achievement milestones
+    milestones = [
+        {"days": 5, "name": "First Steps", "description": "Completed 5 days", "badge": "🎯"},
+        {"days": 10, "name": "Momentum Builder", "description": "Completed 10 days", "badge": "💪"},
+        {"days": 20, "name": "Halfway Hero", "description": "Completed 20 days", "badge": "⚡"},
+        {"days": 30, "name": "Consistent Champion", "description": "Completed 30 days", "badge": "🔥"},
+        {"days": 45, "name": "Peak Performance", "description": "Completed 45 days", "badge": "🏆"},
+    ]
+    
+    # Check which achievements user has earned
+    for milestone in milestones:
+        if completed_count >= milestone["days"]:
+            # Check if achievement already exists
+            existing = await db.achievements.find_one(
+                {"user_id": user_id, "name": milestone["name"]},
+                {"_id": 0}
+            )
+            
+            if not existing:
+                achievement_doc = {
+                    "achievement_id": f"ach_{uuid.uuid4().hex[:12]}",
+                    "user_id": user_id,
+                    "name": milestone["name"],
+                    "description": milestone["description"],
+                    "badge": milestone["badge"],
+                    "days_required": milestone["days"],
+                    "earned_at": datetime.now(timezone.utc)
+                }
+                await db.achievements.insert_one(achievement_doc)
 
 @api_router.get("/workout/progress")
 async def get_progress(user: Dict = Depends(require_auth)):

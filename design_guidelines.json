@@ -1,0 +1,186 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "mission": "Create a top 1% fitness app design that breaks category conventions. Fusion over imitation. Emotion first.",
+    "principles": [
+      "Fusion over Imitation: Mix athletic precision with lifestyle warmth.",
+      "Emotion First: Every pixel must convey 'Energy' and 'Progress'.",
+      "Content is King: Directed storytelling, not just data dumps.",
+      "Zoom In: Bold focus on essential metrics.",
+      "Negative Space: 2-3x more spacing than typical apps.",
+      "Contrast: High contrast for readability and impact."
+    ],
+    "anti_patterns": [
+      "Purple/Teal generic SaaS gradients.",
+      "Inter font everywhere (Use Barlow Condensed for Headings).",
+      "Center-everything layouts (Use Asymmetry).",
+      "Gradient overload (Use texture/noise instead)."
+    ]
+  },
+  "typography": {
+    "strategy": "The Performance Pro",
+    "fonts": {
+      "heading": {
+        "family": "Barlow Condensed",
+        "weights": ["700", "900"],
+        "usage": "Hero titles, Section headers, Big stats",
+        "fallback": "sans-serif",
+        "google_font_url": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap"
+      },
+      "body": {
+        "family": "DM Sans",
+        "weights": ["400", "500", "700"],
+        "usage": "Paragraphs, UI labels, Data tables",
+        "fallback": "sans-serif"
+      }
+    },
+    "rules": [
+      "Headings > 32px must use 'tracking-tight'.",
+      "Overlines/Labels must be Uppercase + 'tracking-widest' + 'text-xs'.",
+      "Line height: 'leading-none' for headers, 'leading-relaxed' for body."
+    ]
+  },
+  "colors": {
+    "theme_strategy": "The Performance Pro (Dark Mode Primary, Light Mode Toggle)",
+    "palette": {
+      "light": {
+        "background": "#FFFFFF",
+        "foreground": "#0A0A0A",
+        "card": "#F4F4F5",
+        "card_foreground": "#0A0A0A",
+        "primary": "#007AFF",
+        "primary_foreground": "#FFFFFF",
+        "secondary": "#F4F4F5",
+        "secondary_foreground": "#18181B",
+        "muted": "#F4F4F5",
+        "muted_foreground": "#71717A",
+        "accent": "#F4F4F5",
+        "accent_foreground": "#18181B",
+        "destructive": "#EF4444",
+        "destructive_foreground": "#FAFAFA",
+        "border": "#E4E4E7",
+        "input": "#E4E4E7",
+        "ring": "#0A0A0A"
+      },
+      "dark": {
+        "background": "#0A0A0A",
+        "foreground": "#FAFAFA",
+        "card": "#18181B",
+        "card_foreground": "#FAFAFA",
+        "primary": "#007AFF",
+        "primary_foreground": "#FAFAFA",
+        "secondary": "#27272A",
+        "secondary_foreground": "#FAFAFA",
+        "muted": "#27272A",
+        "muted_foreground": "#A1A1AA",
+        "accent": "#27272A",
+        "accent_foreground": "#FAFAFA",
+        "destructive": "#7F1D1D",
+        "destructive_foreground": "#FAFAFA",
+        "border": "#27272A",
+        "input": "#27272A",
+        "ring": "#D4D4D8"
+      }
+    },
+    "special_colors": {
+      "electric_blaze": "#FF3B30",
+      "volt_blue": "#007AFF",
+      "obsidian": "#0A0A0A",
+      "pure_white": "#FFFFFF"
+    },
+    "usage_rules": [
+      "Use 'Volt Blue' for primary actions and trust signals.",
+      "Use 'Electric Blaze' sparingly for high-intensity alerts or 'Burn' metrics.",
+      "Never use pure black (#000000) for backgrounds; use Obsidian (#0A0A0A).",
+      "Ensure text contrast meets APCA standards."
+    ]
+  },
+  "layout": {
+    "spacing_system": {
+      "scale": ["p-1", "p-2", "p-4", "p-6", "p-8", "p-12", "p-16", "p-20", "p-24", "p-32"],
+      "rule": "Use 2-3x more spacing than typical designs. Containers with borders must have internal padding (p-6 or p-8)."
+    },
+    "grids": {
+      "marketing": {
+        "name": "The Tetris Grid (Mode A)",
+        "cols": "grid-cols-1 md:grid-cols-8 lg:grid-cols-12",
+        "gap": "gap-8 lg:gap-12",
+        "rules": "Asymmetry is key. Never fill 100% of the grid perfectly. Leave breathing room."
+      },
+      "dashboard": {
+        "name": "High Density Grid (Mode B)",
+        "cols": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4",
+        "gap": "gap-4 or gap-6",
+        "rules": "Every pixel utilized. Use h-full on children. No jagged bottoms."
+      }
+    },
+    "alignment": {
+      "mobile": "Mobile-first (grid-cols-1).",
+      "optical": "Add extra padding to visually center text blocks next to round icons."
+    }
+  },
+  "components": {
+    "strategy": "Hybrid (Custom HTML for Marketing, Shadcn for App)",
+    "styles": {
+      "buttons": "Sharp edges or Pill-shaped. No default rounded-md.",
+      "cards": "Flat background, 1px subtle border, no shadow by default. Hover: Slight lift + shadow.",
+      "inputs": "Shadcn Input, customized to match brand colors.",
+      "headers": "Crystal Glass effect (backdrop-blur-xl, backdrop-saturate-150, 1px border)."
+    },
+    "special_elements": {
+      "tracing_beam": "Use for pricing or feature highlights. Glowing gradient line moving around the border.",
+      "marquee": "Use 'react-fast-marquee' for 'Kinetic Texture' (large outline text in background).",
+      "glassmorphism": "Use for sticky headers and floating navs. High blur, subtle border."
+    },
+    "libraries": {
+      "icons": "lucide-react (default), @phosphor-icons/react (for marketing)",
+      "charts": "recharts (via shadcn/charts)",
+      "motion": "framer-motion",
+      "toast": "sonner"
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1728908053208-b7403ce54b6b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwyfHxhdGhsZXRlJTIwc3ByaW50aW5nJTIwdHJhY2slMjBkYXJrJTIwYWVzdGhldGljfGVufDB8fHx8MTc2OTUzMTg0NXww&ixlib=rb-4.1.0&q=85",
+        "description": "Night track, moody, high contrast. Use with overlay for Hero section."
+      },
+      {
+        "category": "sport_badminton",
+        "url": "https://images.unsplash.com/photo-1595220427358-8cf2ce3d7f89?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxiYWRtaW50b24lMjBwbGF5ZXIlMjBzbWFzaCUyMGFjdGlvbnxlbnwwfHx8fDE3Njk1MzE4NDZ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Action shot of badminton player. Use for Sport Selection card."
+      },
+      {
+        "category": "home_workout",
+        "url": "https://images.unsplash.com/photo-1758599880050-b33b1fbf3713?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTB8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBkb2luZyUyMGJvZHl3ZWlnaHQlMjBleGVyY2lzZSUyMGhvbWV8ZW58MHx8fHwxNzY5NTMxODQ4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "People doing bodyweight exercises at home. Use for 'Hobby/Fitness' purpose card."
+      },
+      {
+        "category": "generic_fitness",
+        "url": "https://images.unsplash.com/photo-1514118076338-16287f818848?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxhdGhsZXRlJTIwc3ByaW50aW5nJTIwdHJhY2slMjBkYXJrJTIwYWVzdGhldGljfGVufDB8fHx8MTc2OTUzMTg0NXww&ixlib=rb-4.1.0&q=85",
+        "description": "Boy running, dynamic. Use for 'Athletics' sport card."
+      }
+    ],
+    "icons_instruction": "Use Lucide React icons. For sports specific icons not in Lucide, use text labels or generic activity icons."
+  },
+  "universal_guidelines": [
+    "Do not use generic centered layouts.",
+    "Create depth through layered design elements (z-index).",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "NO 'transition: all'. Animate specific properties.",
+    "Every interaction needs micro-animations (hover, focus, active).",
+    "Use 'sonner' for toasts.",
+    "All interactive elements MUST include 'data-testid'."
+  ],
+  "instructions_to_main_agent": [
+    "1. Install dependencies: 'npm install framer-motion lucide-react clsx tailwind-merge sonner react-fast-marquee'.",
+    "2. Update 'tailwind.config.js' with the 'Performance Pro' colors and 'Barlow Condensed' font family.",
+    "3. Create a 'Layout' component that handles the sticky header (Glassmorphism) and footer.",
+    "4. Build the 'Landing Page' using the 'Tetris Grid' and 'Hero' image provided.",
+    "5. Build the 'Onboarding Flow' using Shadcn forms, but styled with the 'Performance Pro' theme.",
+    "6. Build the 'Dashboard' using the 'High Density Grid' and Bento-style widgets.",
+    "7. Ensure all text is legible and contrast ratios are met.",
+    "8. Use the provided image URLs for the respective sections."
+  ]
+}

@@ -155,7 +155,7 @@ const DashboardPage = ({ user: initialUser }) => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             <Card data-testid="progress-card" className="card-hover border-border">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Progress</CardTitle>
@@ -172,10 +172,25 @@ const DashboardPage = ({ user: initialUser }) => {
               </CardContent>
             </Card>
 
+            <Card data-testid="streak-card" className="card-hover border-border">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Current Streak</CardTitle>
+                <Trophy className="w-5 h-5 text-electric-blaze" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-heading font-black mb-2">
+                  {progress?.current_streak || 0} 🔥
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Best: {progress?.longest_streak || 0} days
+                </p>
+              </CardContent>
+            </Card>
+
             <Card data-testid="next-workout-card" className="card-hover border-border">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Next Workout</CardTitle>
-                <Calendar className="w-5 h-5 text-electric-blaze" />
+                <Calendar className="w-5 h-5 text-volt-blue" />
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-heading font-black mb-2">
@@ -190,7 +205,7 @@ const DashboardPage = ({ user: initialUser }) => {
             <Card data-testid="bmi-card" className="card-hover border-border">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">BMI</CardTitle>
-                <Trophy className="w-5 h-5 text-volt-blue" />
+                <Activity className="w-5 h-5 text-volt-blue" />
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-heading font-black mb-2">
@@ -210,6 +225,51 @@ const DashboardPage = ({ user: initialUser }) => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Achievements Section */}
+          {achievements.length > 0 && (
+            <Card data-testid="achievements-card" className="mb-12 border-border">
+              <CardHeader>
+                <CardTitle className="font-heading flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-volt-blue" />
+                  Achievements
+                </CardTitle>
+                <CardDescription>Your fitness milestones</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {achievements.map((achievement) => (
+                    <motion.div
+                      key={achievement.name}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`text-center p-4 rounded-lg border-2 transition-all ${
+                        achievement.earned
+                          ? 'border-volt-blue bg-volt-blue/10'
+                          : 'border-border bg-secondary/50 opacity-50'
+                      }`}
+                      data-testid={`achievement-${achievement.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      <div className="text-4xl mb-2">{achievement.badge}</div>
+                      <p className="font-bold text-xs mb-1">{achievement.name}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{achievement.description}</p>
+                      {!achievement.earned && (
+                        <div className="mt-2">
+                          <Progress value={(achievement.progress / achievement.days_required) * 100} className="h-1" />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {achievement.progress}/{achievement.days_required}
+                          </p>
+                        </div>
+                      )}
+                      {achievement.earned && (
+                        <p className="text-xs text-volt-blue font-bold mt-2">✓ Earned</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* AI Recommendations */}
           <Card data-testid="ai-recommendations-card" className="mb-12 border-border">

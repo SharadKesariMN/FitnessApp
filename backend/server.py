@@ -533,7 +533,13 @@ async def check_achievements(user_id: str):
 async def get_progress(user: Dict = Depends(require_auth)):
     plan_id = user.get("current_plan_id")
     if not plan_id:
-        return {"total_days": 0, "completed_days": 0, "progress_percentage": 0}
+        return {
+            "total_days": 0,
+            "completed_days": 0,
+            "progress_percentage": 0,
+            "current_streak": 0,
+            "longest_streak": 0
+        }
     
     progress_list = await db.user_progress.find(
         {"user_id": user["user_id"], "plan_id": plan_id, "completed": True},
@@ -547,8 +553,51 @@ async def get_progress(user: Dict = Depends(require_auth)):
     return {
         "total_days": total_days,
         "completed_days": completed_days,
-        "progress_percentage": round(progress_percentage, 2)
+        "progress_percentage": round(progress_percentage, 2),
+        "current_streak": user.get("current_streak", 0),
+        "longest_streak": user.get("longest_streak", 0)
     }
+
+@api_router.get("/achievements")
+async def get_achievements(user: Dict = Depends(require_auth)):
+    achievements = await db.achievements.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0}
+    ).to_list(1000)
+    return achievements
+
+@api_router.get("/achievements/available")
+async def get_available_achievements(user: Dict = Depends(require_auth)):
+    # Return all possible achievements with earned status
+    completed_count = await db.user_progress.count_documents(
+        {"user_id": user["user_id"], "completed": True}
+    )
+    
+    milestones = [
+        {"days": 5, "name": "First Steps", "description": "Complete 5 workout days", "badge": "🎯"},
+        {"days": 10, "name": "Momentum Builder", "description": "Complete 10 workout days", "badge": "💪"},
+        {"days": 20, "name": "Halfway Hero", "description": "Complete 20 workout days", "badge": "⚡"},
+        {"days": 30, "name": "Consistent Champion", "description": "Complete 30 workout days", "badge": "🔥"},
+        {"days": 45, "name": "Peak Performance", "description": "Complete all 45 days", "badge": "🏆"},
+    ]
+    
+    earned_achievements = await db.achievements.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    earned_names = {ach["name"] for ach in earned_achievements}
+    
+    result = []
+    for milestone in milestones:
+        result.append({
+            **milestone,
+            "earned": milestone["name"] in earned_names,
+            "progress": min(completed_count, milestone["days"]),
+            "earned_at": next((ach["earned_at"] for ach in earned_achievements if ach["name"] == milestone["name"]), None)
+        })
+    
+    return result
 
 # Exercise endpoints
 @api_router.get("/exercises")

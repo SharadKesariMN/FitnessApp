@@ -59,7 +59,7 @@ const LandingPage = () => {
             <div className="mb-8 flex justify-center items-center space-x-3">
               <Activity className="w-12 h-12 text-volt-blue" />
               <h1 className="text-6xl md:text-7xl font-heading font-black tracking-tight text-white">
-                FIT & FLEX!
+                FIT & FLEX!!
               </h1>
             </div>
 
